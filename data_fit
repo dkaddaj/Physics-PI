@@ -1,0 +1,51 @@
+% This MATLAB code was written by Detlef Amberg and edited by Daniel Kaddaj.
+% The original opensource code as published by Detlef Amberg can be found at https://uk.mathworks.com/matlabcentral/fileexchange/50756-fit-a-damped-sine-wave?focused=3873422&tab=function
+
+format long
+lis=[];
+for c = 1:169
+    aa = xlsread('PI.xlsx');
+    sig=aa(:,c);
+    spd=fft(sig);
+    [y,ind]=max(abs(spd(1:end/2)));
+    ind=ind-1;% how many sinewaves in the window
+    nn=length(sig)/ind; % samples per sine wave
+    dd=round(nn/4); 
+    n=length(sig);
+    sn0=sig(2*dd+1:end   );
+    sn1=sig(1*dd+1:end-dd);
+    sn2=sig(1:end-2*dd);
+    M=[-sn1 -sn2];
+    coff=inv(M'*M)*M'*sn0;
+    rest =roots([1; coff]);
+    rest1=rest.^(1/dd);
+    far=poly(rest1);
+    if(1)
+    MM=  repmat(rest1.',n,1).^repmat((0:n-1).',1,2);
+    coff1=inv(MM.'*MM)*MM.'*sig;
+    sig3r=real(MM*coff1);
+    sig1r=zeros(1,n);
+    sig1r(1)=sig3r(1);
+    sig1r(2)=sig3r(2);
+    for(k=3:n)
+     sig1r(k)=-far(2)*sig1r(k-1)-far(3)*sig1r(k-2);
+    end
+    end;
+    br=far(3);
+    alphar=log(sqrt(br));
+    wr=acos(-far(2)/2/sqrt(br));
+    M=[ (exp(alphar*(0:n-1)).*sin((0:n-1)*wr)).' ....
+        (exp(alphar*(0:n-1)).*cos((0:n-1)*wr)).'];
+    coff=inv(M'*M)*M'*sig;
+    cc=coff(2)+j*coff(1);
+    Ar=abs(cc);
+    phr=angle(cc');
+    sig2r=Ar*exp(alphar*(0:n-1)) .* cos(wr*(0:n-1)+phr);  
+    resr = [Ar alphar wr phr];
+    coef = alphar;
+    plot(0:n-1,sig,'r',0:n-1,sig2r,'b--');
+    %plot(0:n-1,sig,'r.-',0:n-1,sig1r,'g.-',0:n-1,sig2r,'b.-');
+    %plot(noise)
+    lis = [lis coef];
+end
+lis
