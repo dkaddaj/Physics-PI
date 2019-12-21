@@ -1,0 +1,22 @@
+T=[];
+for c = 1:6 
+    maxima=[];
+    minima=[];
+    x=[];
+    aa = xlsread('PI_LConc_Input.xlsx');
+    sig=aa(:,c);
+    maxf = islocalmax(sig);
+    minf = islocalmin(sig);
+    for i = 1:length(sig)
+        if maxf(i) == 1
+            maxima = [maxima sig(i)];
+        elseif minf(i) == 1
+            minima = [minima -sig(i)];
+            x = [x i];
+        end
+    end
+    c
+    T = table(maxima(:));
+    writetable(T, 'PI_LConc_Maxima.xlsx', 'Sheet', sprintf('Max%d',c));
+end
+% Change loop length,filenames and whether to record maxima or minima as required
